@@ -1,293 +1,368 @@
-#!/sw/bin/python
+#!/sw/pipeline/rendering/python3/venv/bin/python
 
-# This is the Changes Confirmation window of the Atomic Farm UI. Helps the user
-# see the changes to be made before they are applied.
-# Created using PyQt5
-# Please only adjust values if totally sure of what you are doing!
-#
-# Created by Guillermo Aguero - Render TD
+""" 
+This is the Changes Confirmation window of the Atomic Farm UI. Helps the user
+see the changes to be made before they are applied.
+Created using PyQt5
+Please only adjust values if totally sure of what you are doing!
+
+Created by Guillermo Aguero - Render TD
+
+Written in Python3.
+"""
 
 import json
+from qtpy import QtGui, QtWidgets
 
-from qtpy import QtCore, QtGui, QtWidgets
-from qtpy.QtWidgets import QApplication
-from functools import partial
-from changes_applied_window import Ui_changesApplied_MainWindow
+from changes_applied_window import UiChangesAppliedMainWindow
+from main_limits_selection_window import UiAtomicCartoonsLimitsMainWindow
 
-class ui_confirmFarmChanges_MainWindow(object):
 
-    def setupUi(self, confirmFarmChanges_MainWindow, current_values_dict,
-                new_values_full_dict, contents_dict, config_file_path_name,
-                temp_folder, backup_folder):
+class UiConfirmFarmChangesMainWindow(QtWidgets.QMainWindow):
+    """The main window class for confirming changes in application limits.
 
-        """ Sets up the user interface for the confirmFarmChanges_MainWindow
+    This class sets up the initial state and user interface components for the
+    'Confirm Changes' main window. It defines paths for the configuration,
+    temporary, and backup folders, initializes necessary UI components and
+    fonts, and loads the provided configuration data.
 
-            Parameters:
-                self (object): The current instance of the class.
-                confirmFarmChanges_MainWindow (QtWidgets.QMainWindow): The
-                main window object.
-                current_values_dict (dict): The dictionary of current values.
-                new_values_full_dict (dict): The dictionary of new values.
-                contents_dict (dict): The dictionary of contents.
-                config_file_path_name (str): The path and name of the
-                configuration file.
-                temp_folder (str): The path to the temporary folder.
-                backup_folder (str): The path to the backup folder.
+    Args:
+        current_values_full_dict (dict): Dictionary containing the current
+        license values for each application.
+        new_values_full_dict (dict): Dictionary containing the new license
+        values for each application.
+        contents_dict (dict): Dictionary containing the contents of the
+        configuration file.
+        config_file_path_name (str): Path to the main configuration file.
+        temp_folder (str): Path to the temporary folder.
+        backup_folder (str): Path to the backup folder.
 
-            Returns:
-                None
+    Methods:
+        setup_ui(): Sets up the user interface components.
+        changes_confirm_window_setup(): Configures the main window for the
+        changes confirmation interface.
+        groupbox_creation(): Creates a group box for the 'Review Your Changes'
+        section of the window.
+        text_browser_creation(): Creates text browsers for displaying current
+        and new application limits.
+        label_creation(): Creates labels for the 'Review Your Changes' group box.
+        button_creation(): Creates and configures buttons for the
+        'Review Your Changes' group box.
+        cancel_button_clicked(): Opens the main Farm Selection Window if the
+        user decides to cancel the process.
+    """
+
+    def __init__(
+        self,
+        current_values_full_dict,
+        new_values_full_dict,
+        contents_dict,
+        config_file_path_name,
+        temp_folder,
+        backup_folder,
+    ):
+        """Initializes an instance of the class.
+
+        This constructor sets up the initial state and user interface components
+        for the 'Confirm Changes' main window. It defines the paths for the configuration,
+        temporary, and backup folders, initializes the necessary UI components and fonts,
+        and loads the provided configuration data.
+
+        Args:
+            current_values_full_dict (dict): Dictionary containing the current
+            license values for each application.
+            new_values_full_dict (dict): Dictionary containing the new license
+            values for each application.
+            contents_dict (dict): Dictionary containing the contents of the configuration file.
+            config_file_path_name (str): Path to the main configuration file.
+            temp_folder (str): Path to the temporary folder.
+            backup_folder (str): Path to the backup folder.
+
+        Attributes:
+            current_values_full_dict (dict): Dictionary containing the current
+            license values for each application.
+            new_values_full_dict (dict): Dictionary containing the new license
+            values for each application.
+            contents_dict (dict): Dictionary containing the contents of the
+            configuration file.
+            config_file_path_name (str): Path to the main configuration file.
+            temp_folder (str): Path to the temporary folder.
+            backup_folder (str): Path to the backup folder.
+            centralwidget (QWidget): Central widget for the main window.
+            confirm_changes_groupbox (QGroupBox): Group box for the confirm
+            changes UI components.
+
+        Fonts:
+            l_font (QFont): Large, bold, italic font with underline for headings.
+            s_font (QFont): Smaller font for other text elements, set to thin weight.
+
+        Calls:
+            setup_ui(): Configures the user interface components.
         """
 
-        # This is needed to translate the Python strings into a 'language' the UI
-        # from PyQt understands
-        _translate = QtCore.QCoreApplication.translate  # DO NOT CHANGE THIS
+        super().__init__()
 
-        self.create_fonts()
-        changes_confirm_window = \
-            self.changes_confirm_window_setup(confirmFarmChanges_MainWindow,
-                                              _translate)
+        # Variables
+        self.current_values_full_dict = current_values_full_dict
+        self.new_values_full_dict = new_values_full_dict
+        self.contents_dict = contents_dict
+        self.config_file_path_name = config_file_path_name
+        self.temp_folder = temp_folder
+        self.backup_folder = backup_folder
 
-        changes_confirm_groupBox = self.groupBox_creation(_translate)
-        self.textBrowser_creation(changes_confirm_groupBox, current_values_dict,
-                                  new_values_full_dict)
-        self.label_creation(_translate, changes_confirm_groupBox)
-        self.button_creation(_translate, changes_confirm_window,
-                             changes_confirm_groupBox, config_file_path_name,
-                             temp_folder, contents_dict, backup_folder,
-                             new_values_full_dict)
+        # Sections of the window
+        self.centralwidget = ""
+        self.confirm_changes_groupbox = None
 
-        QtCore.QMetaObject.connectSlotsByName(confirmFarmChanges_MainWindow)
-
-    def create_fonts(self):
-        """ Creates the Large and Small fonts used throughout the window.
-
-            Parameters:
-                self: Main object.
-
-            Returns:
-                l_font (QFont): larger size font used for titles
-                s_font (QFont): smaller size font used for everything else.
-        """
-
-        self.l_font = QtGui.QFont()  # Larger Font for Titles
-        self.l_font.setFamily("Cantarell")
-        self.l_font.setPointSize(14)
-        self.l_font.setBold(True)
-        self.l_font.setItalic(True)
+        # Fonts
+        self.l_font = QtGui.QFont(
+            "Cantarell", 14, QtGui.QFont.Bold, QtGui.QFont.StyleItalic
+        )
         self.l_font.setUnderline(True)
-        self.s_font = QtGui.QFont()  # Smaller Font for most text
-        self.s_font.setFamily("Cantarell")
-        self.s_font.setPointSize(11)
 
-    def changes_confirm_window_setup(self, changes_confirm_window, _translate):
-        """ Sets up the main window of the Windows Farm application.
+        self.s_font = QtGui.QFont("Cantarell", 12)  # Smaller Font for most text
+        self.s_font.setWeight(QtGui.QFont.Thin)
 
-            Parameters:
-                changes_confirm_window (QtWidgets.QMainWindow): The main
-                window widget of the application.
-                _translate (function): The function to translate Python
-                strings into a 'language' the PyQt UI understands.
+        self.setup_ui()
 
-            Returns:
-                changes_confirm_window (QtWidgets.QMainWindow): The main
-                window widget of the application.
+    def setup_ui(self):
+        """Sets up the user interface for the App Limits application.
+
+        This method initializes and configures the changes confirmation
+        window of the App Limits UI. It sets up various UI components such as
+        the applications list, group boxes, information labels, and buttons to
+        provide a functional and interactive interface for the application
+        limits management.
+
+        Parameters:
+            self (object): The object instance.
+
+        Returns:
+            None
         """
 
-        changes_confirm_window.setObjectName("changes_confirm_window")
+        self.changes_confirm_window_setup()
+        # Create the groupbox
+        self.groupbox_creation()
+        # Create Text Browser
+        self.text_browser_creation()
+        # Label Creation
+        self.label_creation()
+        # Button Creation
+        self.button_creation()
+
+    def changes_confirm_window_setup(self):
+        """Sets up the changes confirmation window, including the window's size,
+        style, and title, and centers it on the screen.
+
+        This method configures the main window for the changes confirmation
+        interface by setting its title, fixed size, and style sheet. It also
+        initializes the central widget and centers the window on the screen
+        using a method that replaces the deprecated centering technique.
+
+        Parameters:
+            self (object): The object instance
+
+        Returns:
+            None
+        """
+
+        # Title of the Window can be changed here.
+        self.setWindowTitle("Changes Confirmation Window")
         # Window Size can be adjusted here
-        changes_confirm_window.setFixedSize(463, 349)
+        self.setFixedSize(463, 349)
         # Using this style sheet the theme can be changed
-        changes_confirm_window.setStyleSheet("background-color: rgb(46, 52, 54);"
-                                             "\n""color: rgb(238, 238, 236);")
-        self.centralwidget = QtWidgets.QWidget(changes_confirm_window)
-        # Title of the Main Window can be changed here.
-        changes_confirm_window.setWindowTitle(_translate(
-            "changes_confirm_window", "Changes Confirmation Window"))
-        changes_confirm_window.setCentralWidget(self.centralwidget)
+        self.setStyleSheet(
+            """background-color: rgb(46, 52, 54);color: rgb(238, 238, 236);"""
+        )
+        self.centralwidget = QtWidgets.QWidget(self)
+        self.setCentralWidget(self.centralwidget)
 
-        def center(confirmFarmChanges_MainWindow):
-            qr = confirmFarmChanges_MainWindow.frameGeometry()
-            screen = QApplication.desktop().screenNumber(
-                QApplication.desktop().cursor().pos())
-            cp = QApplication.desktop().screenGeometry(screen).center()
-            qr.moveCenter(cp)
-            confirmFarmChanges_MainWindow.move(qr.topLeft())
+        def center_window(window):
 
-        center(changes_confirm_window)
+            frame = window.frameGeometry()
+            screen = QtGui.QGuiApplication.screenAt(QtGui.QCursor().pos())
 
-        return changes_confirm_window
+            if screen is None:
+                screen = QtGui.QGuiApplication.primaryScreen()
 
-    def groupBox_creation(self, _translate):
-        """ Creates a Group Box widget within the main window to hold all the UI
-            elements related to the change confirmation window.
+            frame.moveCenter(screen.geometry().center())
+            window.move(frame.topLeft())
 
-           Parameters:
-               self (object): instance of a class.
-               _translate (function): translation function.
-               box after cleaning up the farm_name.
+        center_window(self)
 
-           Returns:
-               linuxFarm_groupBox (QGroupBox): the created group box.
+    def groupbox_creation(self):
+        """Creates a group box for the "Review Your Changes" section of the window.
+
+        This method sets up the group box within the main window. The group box contains
+        UI elements related to reviewing the changes made by the user. It sets the title,
+        geometry, and font for the group box.
+
+        Parameters:
+            self (object): The object instance
+
+        Returns:
+            None
         """
-
-        review_changes_groupBox = QtWidgets.QGroupBox(self.centralwidget)
-        review_changes_groupBox.setGeometry(QtCore.QRect(10, 10, 441, 331))
-        review_changes_groupBox.setFont(self.l_font)
         # Title of the Group Box
-        review_changes_groupBox.setTitle(
-            _translate("confirmFarmChanges_MainWindow", "Review Your Changes"))
+        self.confirm_changes_groupbox = QtWidgets.QGroupBox(
+            "Review Your Changes", self.centralwidget
+        )
+        self.confirm_changes_groupbox.setFont(self.l_font)
+        self.confirm_changes_groupbox.setGeometry(10, 10, 441, 331)
 
-        return review_changes_groupBox
+    def text_browser_creation(self):
+        """
+        Creates text browsers for displaying current and new application limits.
 
-    def textBrowser_creation(self, changes_confirm_groupBox, current_values_dict,
-                             new_values_full_dict):
-        """ Creates and configures a text browser widget to display the values
-            before and after changes.
+        This method sets up two read-only QTextBrowser widgets within the
+        "Review Your Changes" group box. The first text browser displays the
+        current application limits, and the second text browser displays the
+        new application limits. It configures the geometry and font for each
+        text browser and populates them with the respective data.
 
-            Parameters:
-                changes_confirm_groupBox (QtWidgets.QGroupBox): The group box
-                where the QTextBrowser widgets will be added.
-                current_values_dict (dict): A dictionary containing the
-                current values for each application.
-                new_values_full_dict (dict): A dictionary containing the
-                new values for each application.
+        Parameters:
+            self (object): The object instance
 
-            Returns:
-                None
+        Returns:
+            None
         """
 
-        before_textBrowser = QtWidgets.QTextBrowser(changes_confirm_groupBox)
-        before_textBrowser.setGeometry(QtCore.QRect(10, 140, 141, 131))
-        before_textBrowser.setFont(self.s_font)
-        before_textBrowser.setReadOnly(True)
-        before_textBrowser.setObjectName("before_textBrowser")
+        before_text_browser = QtWidgets.QTextBrowser(self.confirm_changes_groupbox)
+        before_text_browser.setGeometry(10, 140, 141, 131)
+        before_text_browser.setFont(self.s_font)
+        before_text_browser.setReadOnly(True)
 
-        for application, limits in current_values_dict.items():
-            before_textBrowser.append('{}: {}'.format(application, limits))
+        for application, limits in self.current_values_full_dict.items():
+            before_text_browser.append(f"{application}: {limits}")
 
-        after_textBrowser = QtWidgets.QTextBrowser(changes_confirm_groupBox)
-        after_textBrowser.setGeometry(QtCore.QRect(230, 140, 141, 131))
-        after_textBrowser.setFont(self.s_font)
-        after_textBrowser.setReadOnly(True)
-        after_textBrowser.setObjectName("after_textBrowser")
+        after_text_browser = QtWidgets.QTextBrowser(self.confirm_changes_groupbox)
+        after_text_browser.setGeometry(230, 140, 141, 131)
+        after_text_browser.setFont(self.s_font)
+        after_text_browser.setReadOnly(True)
+        after_text_browser.setObjectName("after_text_browser")
 
-        for application, limits in new_values_full_dict.items():
-            after_textBrowser.append('{}: {}'.format(application, limits))
+        for application, limits in self.new_values_full_dict.items():
+            after_text_browser.append(f"{application}: {limits}")
 
-    def label_creation(self, _translate, changes_confirm_groupBox):
-        """ Creates all labels with specified properties and text.
+    def label_creation(self):
+        """Creates labels for the "Review Your Changes" group box.
 
-            Parameters:
-                _translate (QTranslator): A function that returns a
-                translated version of a string.
-                changes_confirm_groupBox (QGroupBox): group box widget the
-                label will be added to.
+        This method sets up and configures several QLabel widgets within
+        the "Review Your Changes" group box. These labels provide instructional
+        text and headings for the text browsers that display the current and
+        new application limits. The method configures the text, geometry, font,
+        word wrap, and style for each label.
 
-            Returns:
-                None
+        Parameters:
+            self (object): The object instance
+
+        Returns:
+            None
         """
-        
-        review_changes_label = QtWidgets.QLabel(changes_confirm_groupBox)
-        review_changes_label.setGeometry(QtCore.QRect(10, 40, 421, 61))
+
+        # Text inside the label can be changed here
+        review_changes_label = QtWidgets.QLabel(
+            "Please take a close look below to compare the changes "
+            "you have made against the previous settings before you fully "
+            "apply them:",
+            self.confirm_changes_groupbox,
+        )
+        review_changes_label.setGeometry(10, 40, 421, 61)
         review_changes_label.setFont(self.s_font)
         review_changes_label.setWordWrap(True)
-        review_changes_label.setObjectName("review_changes_label")
-        # Text inside the label can be changed here
-        review_changes_label.setText(
-            _translate("confirmFarmChanges_MainWindow",
-                       "Please take a close look below to compare the changes "
-                       "you have made against the previous settings before you "
-                       "fully apply them:"))
-        
-        before_label = QtWidgets.QLabel(changes_confirm_groupBox)
-        before_label.setGeometry(QtCore.QRect(10, 110, 61, 20))
+
+        before_label = QtWidgets.QLabel("Before:", self.confirm_changes_groupbox)
+        before_label.setGeometry(10, 110, 61, 20)
         before_label.setFont(self.l_font)
         before_label.setWordWrap(True)
-        before_label.setObjectName("before_label")
-        before_label.setStyleSheet('color : #D21404')
-        before_label.setText(_translate("confirmFarmChanges_MainWindow",
-                                        "Before:"))
+        before_label.setStyleSheet("color : #D21404")
 
-        after_label = QtWidgets.QLabel(changes_confirm_groupBox)
-        after_label.setGeometry(QtCore.QRect(230, 110, 51, 20))
+        after_label = QtWidgets.QLabel("After:", self.confirm_changes_groupbox)
+        after_label.setGeometry(230, 110, 51, 20)
         after_label.setFont(self.l_font)
         after_label.setWordWrap(True)
-        after_label.setObjectName("after_label")
-        after_label.setStyleSheet('color : #A7F432')
-        after_label.setText(_translate("confirmFarmChanges_MainWindow",
-                                       "After:"))
+        after_label.setStyleSheet("color : #A7F432")
 
-    def button_creation(self, _translate, changes_confirm_window,
-                        changes_confirm_groupBox, config_file_path_name,
-                        temp_folder, contents_dict, backup_folder,
-                        new_values_full_dict):
-        """ Creates and configures QPushButton widgets for user interaction.
+    def button_creation(self):
+        """Creates and configures buttons for the "Review Your Changes" group box.
+
+        This method sets up two buttons: "Stage" and "Cancel" within the
+        "Review Your Changes" group box. It configures each button's text,
+        geometry, font, and style. The "Stage" button is connected to a
+        function that stages the changes by writing them to a temporary
+        configuration file and then opens the "Changes Applied" window. The
+        "Cancel" button is connected to a function that cancels the operation.
+
+        Parameters:
+            self (object): The object instance
+
+        Returns:
+            None
+        """
+
+        stage_push_button = QtWidgets.QPushButton(
+            "Stage", self.confirm_changes_groupbox
+        )
+        stage_push_button.setGeometry(170, 300, 121, 22)
+        stage_push_button.setFont(self.s_font)
+        stage_push_button.setStyleSheet("color: yellow")
+
+        def tmp_push_button_clicked():
+            """Stages changes and opens the "Changes Applied" window.
+
+            This method performs the following tasks:
+            1. Creates a temporary configuration file and updates it with the new values.
+            2. Writes the updated configuration data to the temporary file.
+            3. Initializes and displays the "Changes Applied" window, passing necessary
+            configuration details for further processing.
 
             Parameters:
-                self: The object instance.
-                _translate (function): A translation function used for text
-                localization.
-                changes_confirm_window (QtWidgets.QMainWindow): The main window
-                where the QPushButton widgets are placed.
-                changes_confirm_groupBox (QtWidgets.QGroupBox): The group box
-                where the QPushButton widgets will be added.
-                config_file_path_name (str): The path and name of the
-                configuration file.
-                temp_folder (str): The path to the temporary folder.
-                contents_dict (dict): A dictionary containing the current
-                values of the configuration file.
-                backup_folder (str): The path to the backup folder.
-                new_values_full_dict (dict): A dictionary containing the new
-                values for the configuration file.
+                self (object): The object instance
 
             Returns:
                 None
-        """
+            """
 
-        temp_file_pushButton = QtWidgets.QPushButton(changes_confirm_groupBox)
-        temp_file_pushButton.setGeometry(QtCore.QRect(170, 300, 121, 22))
-        temp_file_pushButton.setFont(self.s_font)
-        temp_file_pushButton.setObjectName("applyChanges_pushButton")
-        temp_file_pushButton.setText(_translate("confirmFarmChanges_MainWindow", "Stage"))
-        temp_file_pushButton.setStyleSheet('color: yellow')
+            tmp_file_name = f"{self.temp_folder}temp.config"
 
-        # config_file_path_name, temp_folder, contents_dict, backup_folder,
-        # new_values_full_dict
-        def tmp_pushButton_clicked(cfpn, tf, cd, bf, nvfd):
+            for application, limit in self.new_values_full_dict.items():
+                self.contents_dict["Limits"][application.lower()]["SiteMax"] = limit
 
-            tmp_file_name = '{}temp.config'.format(tf)
+            with open(tmp_file_name, mode="w") as created_file:
+                json.dump(self.contents_dict, created_file, indent=4)
 
-            for application, limit in nvfd.items():
-                cd['Limits'][application.lower()]['SiteMax'] = limit
+            changes_applied_window = UiChangesAppliedMainWindow(
+                self.config_file_path_name,
+                self.temp_folder,
+                self.contents_dict,
+                self.backup_folder,
+                self.new_values_full_dict,
+            )
 
-            with open(tmp_file_name, mode='w') as created_file:
-                json.dump(cd, created_file, indent=4)
+            changes_applied_window.show()
 
-            self.changesApplied_window = QtWidgets.QMainWindow()
-            self.ui = Ui_changesApplied_MainWindow()
-            self.ui.setupUi(self.changesApplied_window, cfpn,
-                            tf, cd, bf, nvfd)
-            self.changesApplied_window.show()
+        stage_push_button.clicked.connect(tmp_push_button_clicked)
+        stage_push_button.clicked.connect(self.close)
 
-        temp_file_pushButton.clicked.connect(
-            partial(tmp_pushButton_clicked, config_file_path_name, temp_folder,
-                    contents_dict, backup_folder, new_values_full_dict))
-        temp_file_pushButton.clicked.connect(changes_confirm_window.close)
-
-        cancel_pushButton = QtWidgets.QPushButton(changes_confirm_groupBox)
-        cancel_pushButton.setGeometry(QtCore.QRect(310, 300, 121, 22))
-        cancel_pushButton.setFont(self.s_font)
-        cancel_pushButton.setObjectName("cancel_pushButton")
-        cancel_pushButton.setText(_translate("confirmFarmChanges_MainWindow", "Cancel"))
-        cancel_pushButton.clicked.connect(self.cancel_button_clicked)
-        cancel_pushButton.clicked.connect(changes_confirm_window.close)
+        cancel_push_button = QtWidgets.QPushButton(
+            "Cancel", self.confirm_changes_groupbox
+        )
+        cancel_push_button.setGeometry(310, 300, 121, 22)
+        cancel_push_button.setFont(self.s_font)
+        cancel_push_button.clicked.connect(self.cancel_button_clicked)
+        cancel_push_button.clicked.connect(self.close)
 
     def cancel_button_clicked(self):
-        from main_limits_selection_window import ui_AtomicCartoonsLimits_MainWindow
-        self.farm_selection_window = QtWidgets.QMainWindow()
-        self.ui = ui_AtomicCartoonsLimits_MainWindow()
-        self.ui.setupUi(self.farm_selection_window)
-        self.farm_selection_window.show()
+        """Opens up the main Farm Selection Window if the user decided to
+        cancel the process.
 
+        Parameters:
+            self: The object instance.
 
+        Returns:
+            None
+        """
 
+        main_limits_window = UiAtomicCartoonsLimitsMainWindow()
+        main_limits_window.show()  # Sections of the window

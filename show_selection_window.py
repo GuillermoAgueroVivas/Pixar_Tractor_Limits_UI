@@ -1,290 +1,332 @@
-#!/sw/bin/python
+#!/sw/pipeline/rendering/python3/venv/bin/python
 
-# This window is the Initial Window of the Atomic Farm UI.
-# Created using PyQt5
-# Please only adjust values if totally sure of what you are doing!
-#
-# Created by Guillermo Aguero - Render TD
+""" 
+This window is the Initial Window of the Atomic Farm UI.
+Created using PyQt5.
+Please only adjust values if totally sure of what you are doing!
+
+Created by Guillermo Aguero - Render TD
+
+Written in Python3.
+"""
 
 from collections import OrderedDict
 import json
-from functools import partial
-from qtpy import QtCore, QtGui, QtWidgets
-from qtpy.QtWidgets import QApplication
-# These are all the other windows being imported
-from show_limits_window import ui_ShowLimits_MainWindow
+from qtpy import QtGui, QtWidgets, QtCore
 
-class ui_ShowSelectionLimits_MainWindow(object):
 
-    # Window Main Settings
-    def setupUi(self, show_select_limits_window, config_file_path_name,
-                temp_folder, backup_folder):
-        """ Sets up the user interface for the show select limits window.
+class UiShowSelectionLimitsMainWindow(QtWidgets.QMainWindow):
+    """
+    The main window class for selecting and managing show limits.
 
-            Parameters:
-                show_select_limits_window (QMainWindow): The main window for show select limits.
-                config_file_path_name (str): The path and name of the configuration file.
-                temp_folder (str): The path to the temporary folder.
-                backup_folder (str): The path to the backup folder.
+    This class sets up the initial state and user interface components for the
+    show selection limits window. It defines the paths for the configuration,
+    temporary, and backup folders, initializes necessary UI components and
+    fonts, and loads configuration data.
 
-            Returns:
-                None
+    Args:
+        config_file_path_name (str): Path to the main configuration file.
+        temp_folder (str): Path to the temporary folder.
+        backup_folder (str): Path to the backup folder.
+
+    Methods:
+        setup_ui(): Sets up the user interface components.
+        create_shows_list(): Creates a list of shows based on the config file.
+        show_select_limits_window_setup(): Sets up the show selection window.
+        groupbox_creation(): Creates a group box for show limits selection.
+        combo_box_creation(): Creates a combo box for selecting shows.
+        label_creation(): Creates the main label for show limits selection.
+        button_creation(): Creates a button for confirming show limits selection.
+    """
+
+    def __init__(self, config_file_path_name, temp_folder, backup_folder):
+        """Initializes an instance of the UiShowSelectionLimitsMainWindow class.
+
+        This constructor sets up the initial state and user interface components
+        for the application. It defines the paths for the configuration, temporary,
+        and backup folders, and initializes the necessary UI components and fonts.
+
+        Parameters:
+            config_file_path_name (str): Path to the main configuration file.
+            temp_folder (str): Path to the temporary folder.
+            backup_folder (str): Path to the backup folder.
+
+        Attributes:
+            config_file_path_name (str): Path to the main configuration file.
+            temp_folder (str): Path to the temporary folder.
+            backup_folder (str): Path to the backup folder.
+            contents_dict (dict): Contents of the configuration file as an ordered dictionary.
+            show_select_window_ui (object): UI object for the show selection window.
+            app_selection_limits_ui (object): UI object for the application selection limits.
+
+        UI Components:
+            centralwidget (QWidget): Central widget for the main window.
+            show_select_limits_groupbox (QGroupBox): Group box for show limits
+            selection UI components.
+            show_limits_select_combobox (QComboBox): Combo box for show limits selection.
+            show_limits_confirm_push_button (QPushButton): Push button to confirm show
+            limits selection.
+            shows (list): List of shows loaded from the configuration file.
+
+        Fonts:
+            l_font (QFont): Large, bold, italic font with underline for headings.
+            s_font (QFont): Smaller font for other text elements, with thin weight.
+
+        Calls:
+            setup_ui(): Sets up the user interface components.
         """
+
+        super().__init__()
+
+        # Folders
+        self.temp_folder = temp_folder
+        self.backup_folder = backup_folder
+
+        # Sections of the window
+        self.centralwidget = ""
+        self.show_select_limits_groupbox = None
+        self.show_limits_select_combobox = None
+        self.show_limits_confirm_push_button = None
+        self.shows = None
+        self.config_file_path_name = config_file_path_name
 
         # Opening config file
-        with open(config_file_path_name, 'r') as i:
+        with open(config_file_path_name, "r") as i:
             self.contents_dict = json.load(i, object_pairs_hook=OrderedDict)
 
-        # the UI from PyQt understands
-        _translate = QtCore.QCoreApplication.translate  # DO NOT CHANGE THIS
+        # Fonts
+        self.l_font = QtGui.QFont(
+            "Cantarell",
+            14,
+            QtGui.QFont.Bold,
+            QtGui.QFont.StyleItalic,
+        )
+        self.l_font.setUnderline(True)
 
-        self.create_fonts()
-        shows = self.create_shows_list()
-        show_select_limits_window = \
-            self.show_select_limits_window_setup(show_select_limits_window,
-                                                 _translate)
-        show_select_limits_groupBox = self.groupBox_creation(_translate)
-        self.label_creation(_translate, show_select_limits_groupBox)
-        show_limits_select_comboBox = \
-            self.combo_box_creation(_translate, show_select_limits_groupBox,
-                                    shows)
+        self.s_font = QtGui.QFont("Cantarell", 12)  # Smaller Font for most text
+        self.s_font.setWeight(QtGui.QFont.Thin)
 
-        self.button_creation(_translate, show_select_limits_window,
-                             show_select_limits_groupBox,
-                             show_limits_select_comboBox, shows,
-                             config_file_path_name, temp_folder, backup_folder)
+        self.setup_ui()
 
-        QtCore.QMetaObject.connectSlotsByName(show_select_limits_window)
+    def setup_ui(self):
+        """Sets up the user interface for the show select limits window.
 
-    def create_fonts(self):
-        """ Creates the Large and Small fonts used throughout the window.
+        This method initializes and configures the main window and its elements,
+        including the show select limits window setup, shows list creation,
+        group box, labels, combo box, and buttons.
 
-            Parameters:
-                self: Main object.
+        Parameters:
+            self (object): The object instance.
 
-            Returns:
-                l_font (QFont): larger size font used for titles.
-                s_font (QFont): smaller size font used for everything else.
+        Returns:
+            None
         """
 
-        self.l_font = QtGui.QFont()  # Larger Font for Titles
-        self.l_font.setFamily("Cantarell")
-        self.l_font.setPointSize(14)
-        self.l_font.setBold(True)
-        self.l_font.setItalic(True)
-        self.l_font.setUnderline(True)
-        self.s_font = QtGui.QFont()  # Smaller Font for most text
-        self.s_font.setFamily("Cantarell")
-        self.s_font.setPointSize(11)
+        self.show_select_limits_window_setup()
+
+        self.create_shows_list()
+        self.groupbox_creation()
+        self.label_creation()
+        self.combo_box_creation()
+        self.button_creation()
 
     def create_shows_list(self):
-        """ Creates a list of shows based on the contents of the configuration
-            file.
+        """Creates a list of shows based on the contents of the configuration
+        file.
 
-            Parameters:
-                self: The object itself.
+        This method reads the configuration file and generates a list of shows,
+        excluding certain predefined shows.
 
-            Returns:
-                shows (list): A list of shows.
+        Parameters:
+            self (object): The object instance.
+
+        Returns:
+            None
         """
 
-        shows = []
-        avoid = ['MollyOfDenali', 'NightAtTheMuseum', 'RND', 'DGF', 'default']
-        for key in self.contents_dict['Limits']['linuxfarm']['Shares'].keys():
+        self.shows = []
+        avoid = ["MollyOfDenali", "NightAtTheMuseum", "RND", "DGF", "default"]
+        for key in self.contents_dict["Limits"]["linuxfarm"]["Shares"].keys():
             if all(word not in key for word in avoid):
-                shows.append(key)
+                self.shows.append(key)
 
-        return shows
+    def show_select_limits_window_setup(self):
+        """Sets up the show selection window with the specified properties.
 
-    def show_select_limits_window_setup(self, show_select_limits_window,
-                                        _translate):
-        """ Sets up the show selection window with the specified properties.
+        This method configures the main window for the show selection interface,
+        including setting the title, size, and style sheet. It also initializes the
+        central widget and centers the window on the screen.
 
-            Parameters:
-                self: The object itself.
-                show_select_limits_window: The show selection window object.
-                _translate: A function for translating text.
+        Parameters:
+            self (object): The object instance.
 
-            Returns:
-                show_select_limits_window: The configured show selection window
-                object.
+        Returns:
+            None
         """
 
-        show_select_limits_window.setObjectName(
-            "AtomicCartoonsShowLimitsUI_MainWindow")
-        # Window Size can be adjusted here
-        show_select_limits_window.setFixedSize(463, 182)
-        # Using this style sheet the theme can be changed
-        show_select_limits_window.setStyleSheet(
-            "background-color: rgb(46, 52, 54);\n""color: rgb(238, 238, 236);")
-        self.centralwidget = QtWidgets.QWidget(show_select_limits_window)
         # Title of the Main Window can be changed here.
-        show_select_limits_window.setWindowTitle(
-            _translate("show_select_limits_window", "Show Selection Window"))
-        show_select_limits_window.setCentralWidget(self.centralwidget)
+        self.setWindowTitle("Show Selection Window")
+        # Window Size can be adjusted here
+        self.setFixedSize(463, 182)
+        # Using this style sheet the theme can be changed
+        self.setStyleSheet(
+            """
+            background-color: rgb(46, 52, 54);
+            color: rgb(238, 238, 236);
+            """
+        )
+        self.centralwidget = QtWidgets.QWidget(self)
+        self.setCentralWidget(self.centralwidget)
 
-        def center(sslw):
-            qr = sslw.frameGeometry()
-            screen = QApplication.desktop().screenNumber(
-                QApplication.desktop().cursor().pos())
-            cp = QApplication.desktop().screenGeometry(screen).center()
-            qr.moveCenter(cp)
-            sslw.move(qr.topLeft())
+        def center_window(window):
 
-        center(show_select_limits_window)
+            # New method to replace the deprecated centering method
+            frame = window.frameGeometry()
+            screen = QtGui.QGuiApplication.screenAt(QtGui.QCursor().pos())
 
-        return show_select_limits_window
+            if screen is None:
+                screen = QtGui.QGuiApplication.primaryScreen()
 
-    def groupBox_creation(self, _translate):
-        """ Creates and configures a group box for show limits selection.
+            frame.moveCenter(screen.geometry().center())
+            window.move(frame.topLeft())
 
-            Parameters:
-                self: The object itself.
-                _translate: A function for translating text.
+        center_window(self)
 
-            Returns:
-                show_select_limits_groupBox: The configured group box object.
+    def groupbox_creation(self):
+        """Creates and configures a group box for show limits selection.
+
+        This method initializes the 'Show Limits Selection' group box, sets its font,
+        and defines its geometry within the central widget.
+
+        Parameters:
+            self (object): The object instance.
+
+        Returns:
+            show_select_limits_groupbox (QGroupBox): The configured group box object.
         """
 
-        show_select_limits_groupBox = QtWidgets.QGroupBox(self.centralwidget)
-        show_select_limits_groupBox.setGeometry(QtCore.QRect(10, 10, 441, 161))
-        show_select_limits_groupBox.setFont(self.l_font)
         # Title of the Group Box
-        show_select_limits_groupBox.setTitle(
-            _translate("AtomicCartoonsShowLimitsUI_MainWindow",
-                       "Show Limits Selection"))
+        self.show_select_limits_groupbox = QtWidgets.QGroupBox(
+            "Show Limits Selection", self.centralwidget
+        )
+        self.show_select_limits_groupbox.setFont(self.l_font)
+        self.show_select_limits_groupbox.setGeometry(10, 10, 441, 161)
 
-        return show_select_limits_groupBox
+    def combo_box_creation(self):
+        """Creates and configures a combo box for show limits selection.
 
-    def label_creation(self, _translate, show_select_limits_groupBox):
-        """ Creates and configures the main label for show limits selection.
+        This method initializes the combo box within the 'Show Limits Selection' group box,
+        sets its geometry, font, and style, and populates it with a list of shows.
 
-            Parameters:
-                self: The object itself.
-                _translate: A function for translating text.
-                show_select_limits_groupBox: The group box in which the label
-                will be placed.
+        Parameters:
+            self (object): The object instance.
 
-            Returns:
-                show_limits_select_label: The configured label object.
+        Returns:
+            None
         """
 
-        show_limits_select_label = QtWidgets.QLabel(show_select_limits_groupBox)
-        show_limits_select_label.setGeometry(QtCore.QRect(10, 40, 421, 61))
+        self.show_limits_select_combobox = QtWidgets.QComboBox(
+            self.show_select_limits_groupbox
+        )
+        self.show_limits_select_combobox.setGeometry(10, 120, 201, 22)
+        self.show_limits_select_combobox.setFont(self.s_font)
+        self.show_limits_select_combobox.setStyleSheet("color : #A7F432")
+
+        for show in self.shows:
+            if "ACG" in show:
+                continue
+
+            capital_show = show.upper()
+            self.show_limits_select_combobox.addItem(f"{capital_show}")
+
+    def label_creation(self):
+        """Creates and configures the main label for show limits selection.
+
+        This method initializes a QLabel widget within the 'Show Limits Selection' group box,
+        sets its properties such as alignment, word wrap, geometry, and font, and provides
+        instructions to the user for selecting the show to change limits.
+
+        Parameters:
+            self (object): The object instance.
+
+        Returns:
+            None
+        """
+
+        # Text inside the label can be changed here
+        show_limits_select_label = QtWidgets.QLabel(
+            "Utilizing the dropdown menu below, please select what "
+            "show you would like to change the limits for:",
+            self.show_select_limits_groupbox,
+        )
+        show_limits_select_label.setAlignment(QtCore.Qt.AlignLeft)
+        show_limits_select_label.setGeometry(10, 50, 421, 61)
         show_limits_select_label.setFont(self.s_font)
         show_limits_select_label.setWordWrap(True)
-        show_limits_select_label.setObjectName("show_limits_select_label")
-        # Text inside the label can be changed here
-        show_limits_select_label.setText(
-            _translate("AtomicCartoonsShowLimitsUI_MainWindow",
-                       "Utilizing the dropdown menu below, please select what "
-                       "show you would like to change the limits for:"))
 
-    def combo_box_creation(self, _translate, show_select_limits_groupBox, shows):
-        """ Creates and configures a combo box for show limits selection.
+    def button_creation(self):
+        """Creates and configures a button for confirming show limits selection.
 
-            Parameters:
-                self: The object itself.
-                _translate: A function for translating text.
-                show_select_limits_groupBox: The group box in which the combo
-                box will be placed.
-                shows: A list of shows for populating the combo box.
+        This method initializes the QPushButton widget within the 'Show Limits Selection'
+        group box, sets its properties such as geometry and font, and connects its click
+        event to a handler that opens the appropriate window based on the user's selection
+        from the combo box.
 
-            Returns:
-                show_limits_select_comboBox: The configured combo box object.
+        Parameters:
+            self (object): The object instance.
+
+        Returns:
+            None
         """
 
-        show_limits_select_comboBox = QtWidgets.QComboBox(show_select_limits_groupBox)
-        show_limits_select_comboBox.setGeometry(QtCore.QRect(10, 120, 201, 22))
-        show_limits_select_comboBox.setFont(self.s_font)
-        show_limits_select_comboBox.setStyleSheet('color : #A7F432')
-        show_limits_select_comboBox.setObjectName("show_limits_select_comboBox")
+        # Text inside the button can be changed here
+        self.show_limits_confirm_push_button = QtWidgets.QPushButton(
+            "Confirm My Selection", self.show_select_limits_groupbox
+        )
+        self.show_limits_confirm_push_button.setGeometry(250, 120, 171, 22)
+        self.show_limits_confirm_push_button.setFont(self.s_font)
 
-        index = 0
-        for show in shows:
-            show_limits_select_comboBox.addItem("")
-            capital_show = show.upper()
-            show_limits_select_comboBox.setItemText(
-                index, _translate("AtomicCartoonsShowLimitsUI_MainWindow",
-                                  capital_show))
-            index += 1
+        def open_show_limits_window(show):
+            """Opens a new show limits window with the selected show and
+            passes the necessary parameters.
 
-        return show_limits_select_comboBox
-
-    def button_creation(self, _translate, show_select_limits_window,
-                        show_select_limits_groupBox, show_limits_select_comboBox,
-                        shows, config_file_path_name, temp_folder, backup_folder):
-        """ Creates and configures a button for confirming show limits selection.
+            This method imports the UiShowLimitsMainWindow class, creates an instance
+            of it with the selected show and configuration paths, and displays it to
+            the user.
 
             Parameters:
-                self: The object itself.
-                _translate: A function for translating text.
-                show_select_limits_window: The window where the button is placed.
-                show_select_limits_groupBox: The group box where the button
-                is placed.
-                show_limits_select_comboBox: The combo box for show limits
-                selection.
-                shows: A list of shows for matching the selection.
-                config_file_path_name: The path and name of the configuration
-                file.
-                temp_folder: The path of the temporary folder.
-                backup_folder: The path of the backup folder.
+                show (str): The selected show.
 
             Returns:
                 None
-        """
-
-        show_limits_confirm_pushButton = QtWidgets.QPushButton(
-            show_select_limits_groupBox)
-        show_limits_confirm_pushButton.setGeometry(QtCore.QRect(250, 120, 171, 22))
-        show_limits_confirm_pushButton.setFont(self.s_font)
-        show_limits_confirm_pushButton.setObjectName(
-            "show_limits_confirm_pushButton")
-        # Text inside the button can be changed here
-        show_limits_confirm_pushButton.setText(
-            _translate("AtomicCartoonsShowLimitsUI_MainWindow",
-                       "Confirm My Selection"))
-
-        def open_show_limits_window(show, cfpn, tf, bf):
-            """ Opens a new show limits window with the selected show and
-                passes the necessary parameters.
-
-                Parameters:
-                    show (str): The selected show.
-                    cfpn (str): The path and name of the configuration file.
-                    tf (str): The path of the temporary folder.
-                    bf (str): The path of the backup folder.
-
-                Returns:
-                    None
             """
-            self.showLimits_window = QtWidgets.QMainWindow()
-            self.ui = ui_ShowLimits_MainWindow()
-            self.ui.setupUi(self.showLimits_window, show, cfpn, tf, bf)
-            self.showLimits_window.show()
+            from show_limits_window import UiShowLimitsMainWindow
 
-        # Opening the other windows according to the selection of the Combo Box
-        # config_file_path_name, temp_folder, backup_folder
-        def limits_select_button_clicked(cfpn, tf, bf):
-            """ Checks the selected show from the combo box and opens the
-                corresponding show limits window.
+            show_limits_window = UiShowLimitsMainWindow(
+                show, self.config_file_path_name, self.temp_folder, self.backup_folder
+            )
+            show_limits_window.show()
 
-                Parameters:
-                    cfpn (str): The path and name of the configuration file.
-                    tf (str): The path of the temporary folder.
-                    bf (str): The path of the backup folder.
+        def limits_select_button_clicked():
+            """Checks the selected show from the combo box and opens the
+            corresponding show limits window.
 
-                Returns:
-                    None
+            This method retrieves the current text from the combo box, matches it
+            with the list of shows, and opens the corresponding window for the
+            selected show. After opening the new window, the current window is closed.
+
+            Parameters:
+                None
+
+            Returns:
+                None
             """
-            for show in shows:
-                if show_limits_select_comboBox.currentText() == show.upper():
-                    open_show_limits_window(show, cfpn, tf, bf)
+            for show in self.shows:
+                if self.show_limits_select_combobox.currentText() == show.upper():
+                    open_show_limits_window(show)
 
-        # IMPORTANT: This is what happens when the button is pressed to
-        #confirm selection
-        show_limits_confirm_pushButton.clicked.connect(
-            partial(limits_select_button_clicked, config_file_path_name,
-                    temp_folder, backup_folder))
-        show_limits_confirm_pushButton.clicked.connect(
-            show_select_limits_window.close)
+            self.close()
+
+        self.show_limits_confirm_push_button.clicked.connect(
+            limits_select_button_clicked
+        )
