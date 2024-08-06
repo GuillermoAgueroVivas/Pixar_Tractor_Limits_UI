@@ -1,7 +1,7 @@
-#!/sw/pipeline/rendering/python3/venv/bin/python
+#!/usr/bin/python3
 
 """ 
-This is the Changes Applied window of the Atomic Farm UI. Shows message saying
+This is the Changes Applied window of the Farm UI. Shows message saying
 the changes made have been applied and asks if you would like to do more changes.
 Created using PyQt5
 Please only adjust values if totally sure of what you are doing!
@@ -256,7 +256,7 @@ class UiChangesAppliedMainWindow(QtWidgets.QMainWindow):
         def more_changes_button_clicked():
             """Opens the main limits selection window for further modifications.
 
-            This method imports the `UiAtomicCartoonsLimitsMainWindow` class from the
+            This method imports the `UiLimitsMainWindow` class from the
             `main_limits_selection_window` module and creates an instance of it.
             It then displays the limits selection window, allowing the user to
             make additional changes.
@@ -268,9 +268,9 @@ class UiChangesAppliedMainWindow(QtWidgets.QMainWindow):
                 None
             """
 
-            from main_limits_selection_window import UiAtomicCartoonsLimitsMainWindow
+            from main_limits_selection_window import UiLimitsMainWindow
 
-            farm_selection_window = UiAtomicCartoonsLimitsMainWindow()
+            farm_selection_window = UiLimitsMainWindow()
             farm_selection_window.show()
 
         more_changes_pushbutton.clicked.connect(more_changes_button_clicked)
