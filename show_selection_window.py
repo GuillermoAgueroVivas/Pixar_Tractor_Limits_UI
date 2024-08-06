@@ -145,7 +145,7 @@ class UiShowSelectionLimitsMainWindow(QtWidgets.QMainWindow):
         """
 
         self.shows = []
-        avoid = ["MollyOfDenali", "NightAtTheMuseum", "RND", "DGF", "default"]
+        avoid = ["X", "default"] # Changed for this example
         for key in self.contents_dict["Limits"]["linuxfarm"]["Shares"].keys():
             if all(word not in key for word in avoid):
                 self.shows.append(key)
