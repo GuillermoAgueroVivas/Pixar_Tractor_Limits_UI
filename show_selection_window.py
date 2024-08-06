@@ -1,7 +1,7 @@
-#!/sw/pipeline/rendering/python3/venv/bin/python
+#!/usr/bin/python3
 
 """ 
-This window is the Initial Window of the Atomic Farm UI.
+This window is the Initial Window of the Farm UI.
 Created using PyQt5.
 Please only adjust values if totally sure of what you are doing!
 
