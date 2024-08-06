@@ -1,8 +1,8 @@
-#!/sw/pipeline/rendering/python3/venv/bin/python
+#!/usr/bin/python3
 
 """ 
 This window opens up when selected through the 'Application_Limits_Selection_Window'
-of the Atomic Limits UI. Created using PyQt5.
+of the Limits UI. Created using PyQt5.
 Please only adjust values if totally sure of what you are doing!
 
 Created by Guillermo Aguero - Render TD
@@ -473,7 +473,7 @@ class UiApplicationLimitsMainWindow(QtWidgets.QMainWindow):
             None
         """
 
-        from main_limits_selection_window import UiAtomicCartoonsLimitsMainWindow
+        from main_limits_selection_window import UiLimitsMainWindow
 
-        farm_selection_windows = UiAtomicCartoonsLimitsMainWindow()
+        farm_selection_windows = UiLimitsMainWindow()
         farm_selection_windows.show()
