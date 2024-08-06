@@ -1,7 +1,7 @@
-#!/sw/pipeline/rendering/python3/venv/bin/python
+#!/usr/bin/python3
 
 """ 
-This is the Changes Confirmation window of the Atomic Farm UI. Helps the user
+This is the Changes Confirmation window of the Farm UI. Helps the user
 see the changes to be made before they are applied.
 Created using PyQt5
 Please only adjust values if totally sure of what you are doing!
@@ -15,7 +15,7 @@ import json
 from qtpy import QtGui, QtWidgets
 
 from changes_applied_window import UiChangesAppliedMainWindow
-from main_limits_selection_window import UiAtomicCartoonsLimitsMainWindow
+from main_limits_selection_window import UiLimitsMainWindow
 
 
 class UiConfirmFarmChangesMainWindow(QtWidgets.QMainWindow):
@@ -364,5 +364,5 @@ class UiConfirmFarmChangesMainWindow(QtWidgets.QMainWindow):
             None
         """
 
-        main_limits_window = UiAtomicCartoonsLimitsMainWindow()
+        main_limits_window = UiLimitsMainWindow()
         main_limits_window.show()  # Sections of the window
