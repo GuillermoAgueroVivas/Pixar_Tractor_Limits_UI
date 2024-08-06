@@ -1,7 +1,7 @@
-#!/sw/pipeline/rendering/python3/venv/bin/python
+#!/usr/bin/python3
 
 """ 
-This window is the Initial Window of the Atomic Farm UI for Show & License Limits.
+This window is the Initial Window of the Farm UI for Show & License Limits.
 Created using QtPy
 Please only adjust values if totally sure of what you are doing!
 
@@ -14,10 +14,10 @@ from functools import partial
 from qtpy import QtWidgets, QtGui, QtCore
 
 
-class UiAtomicCartoonsLimitsMainWindow(QtWidgets.QMainWindow):
-    """Main window class for the Limit Selection Atomic Farm UI.
+class UiLimitsMainWindow(QtWidgets.QMainWindow):
+    """Main window class for the Limit Selection Farm UI.
 
-    This class creates the main window of the Atomic Limits UI application using QtPy.
+    This class creates the main window of the Limits UI application using QtPy.
     It initializes
     and configures the main window, including UI components like group boxes, labels,
     combo boxes, and buttons. It also manages the transition between different windows
@@ -315,6 +315,6 @@ if __name__ == "__main__":
     import sys
 
     app = QtWidgets.QApplication(sys.argv)
-    main_window_ui = UiAtomicCartoonsLimitsMainWindow()
+    main_window_ui = UiLimitsMainWindow()
     main_window_ui.show()
     sys.exit(app.exec_())
