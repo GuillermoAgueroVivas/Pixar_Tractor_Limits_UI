@@ -1,7 +1,7 @@
-#!/sw/pipeline/rendering/python3/venv/bin/python
+#!/usr/bin/python3
 
 """ 
-This window opens up when selected through the 'Farm_Selection_Window' of the Atomic Farm UI.
+This window opens up when selected through the 'Farm_Selection_Window' of the Farm UI.
 Represents the Linux Farm as a whole.
 Created using PyQt5.
 Please only adjust values if totally sure of what you are doing!
@@ -462,8 +462,8 @@ class UiShowLimitsMainWindow(QtWidgets.QMainWindow):
             None
         """
 
-        from main_limits_selection_window import UiAtomicCartoonsLimitsMainWindow
+        from main_limits_selection_window import UiLimitsMainWindow
 
-        farm_selection_windows = UiAtomicCartoonsLimitsMainWindow()
+        farm_selection_windows = UiLimitsMainWindow()
         farm_selection_windows.show()
         self.close()
