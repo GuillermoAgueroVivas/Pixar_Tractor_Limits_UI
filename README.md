@@ -19,7 +19,7 @@ changes_applied_window.py
 
 After the changes have been submitted, the terminal running the script will display a multiple messages related to the success of the tool changing the '.config' file and reloading Tractor while comparing the values to the ones that are currently live.
 
-**Please note **
+**Please note**
 - For this UI to work in a different environment, a '.config' file is necessary as well as changing the paths required in the first window
 - The images have the name of Shows covered due to NDA agreements
 
